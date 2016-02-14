@@ -1,0 +1,14 @@
+bin/
+3rdparty/
+Debug/
+Release/
+ipch/
+
+*.suo
+*.sdf
+*.opensdf
+*.vcxproj.filters
+*.vcxproj.user
+
+Cloak/Debug/
+Cloak/Release/
