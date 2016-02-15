@@ -5,11 +5,17 @@
 AnimatedMesh::AnimatedMesh(TextureLoader *textureLoader)
 	: mTextureLoader(textureLoader)
 {
+    glGenVertexArrays(1, &mVertexArray);
+    glGenBuffers(kVertexAttributeCount, mVertexBuffers);
+    glGenSamplers(1, &mTexSampler);
 }
 
 
 AnimatedMesh::~AnimatedMesh(void)
 {
+    glDeleteSamplers(1, &mTexSampler);
+    glDeleteBuffers(kVertexAttributeCount, mVertexBuffers);
+    glDeleteVertexArrays(1, &mVertexArray);
 }
 
 bool AnimatedMesh::LoadModel(const std::string& filename) {
@@ -101,37 +107,36 @@ void AnimatedMesh::Update(unsigned int elapsedTimeMillis) {
 }
 
 void AnimatedMesh::Render() {
-	GLuint vbo[4];
-	glGenBuffers(4, vbo);
-	GLuint sampler;
-	glGenSamplers(1, &sampler);
-	for(unsigned int i = 0; i < mMeshes.size(); i++) {
+
+    glBindVertexArray(mVertexArray);
+	
+    for(unsigned int i = 0; i < mMeshes.size(); i++) {
 		Mesh& mesh = mMeshes[i];
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+        
+        glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[0]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * mesh.verts.size(), &mesh.positionBuffer[0], GL_STATIC_DRAW);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+        glEnableVertexAttribArray(0);
+	    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[1]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * mesh.verts.size(), &mesh.normalBuffer[0], GL_STATIC_DRAW);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+        glEnableVertexAttribArray(1);
+	    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        
+        glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffers[2]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * mesh.verts.size(), &mesh.tex2DBuffer[0], GL_STATIC_DRAW);
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(2);
+	    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);		
 
-		glActiveTexture(GL_TEXTURE0);
+    	glActiveTexture(GL_TEXTURE0);
 		GLuint texture = mTextureLoader->GetTexture(mesh.shader);
-		glBindTexture(GL_TEXTURE_2D, mTextureLoader->GetTexture(mesh.shader));
+		glBindTexture(GL_TEXTURE_2D, texture);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[3]);
+        //bind the index buffer
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVertexBuffers[3]);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * mesh.tris.size() * 3, &mesh.indexBuffer[0], GL_STATIC_DRAW);
 		glDrawElements(GL_TRIANGLES, mesh.tris.size() * 3, GL_UNSIGNED_INT, NULL);
 	}
-	glDeleteBuffers(3, vbo);
-	glDeleteSamplers(1, &sampler);
 }
 
 void AnimatedMesh::readBone(boost::filesystem3::ifstream& file, int length) {

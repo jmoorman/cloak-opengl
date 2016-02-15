@@ -18,13 +18,6 @@ void exitWithSDLError() {
 	exit(EXIT_FAILURE);
 }
 
-GLuint uiVBO[2];
-GLuint uiVAO[1];
-
-GLuint uiVAOHeightmap;
-GLuint uiVBOHeightmapData;
-GLuint uiVBOIndices;
-
 Shader *vertexShader;
 Shader *fragmentShader;
 ShaderProgram *program;
@@ -35,8 +28,6 @@ static AnimatedMesh *mesh;
 
 void initScene()
 {
-	glGenVertexArrays(1, &uiVAOHeightmap); // Create one VAO
-	glBindVertexArray(uiVAOHeightmap);
 	vertexShader = new Shader(std::string("../data/shaders/shader.vert"), GL_VERTEX_SHADER); 
 	fragmentShader = new Shader(std::string("../data/shaders/shader.frag"), GL_FRAGMENT_SHADER);
 	program = new ShaderProgram();
@@ -96,11 +87,6 @@ void renderScene()
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	TextureLoader textureLoader;
-	mesh = new AnimatedMesh(&textureLoader);
-	mesh->LoadModel("../data/meshes/boblampclean.md5mesh");
-    mesh->LoadAnim("../data/animations/boblampclean.md5anim");
-
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		exitWithSDLError();
 	}
@@ -140,8 +126,13 @@ int _tmain(int argc, _TCHAR* argv[])
 		exit(EXIT_FAILURE);
 	}
 
+  	initScene();
+
 	//initialize sample data
-	initScene();
+    TextureLoader textureLoader;
+	mesh = new AnimatedMesh(&textureLoader);
+	mesh->LoadModel("../data/meshes/boblampclean.md5mesh");
+    mesh->LoadAnim("../data/animations/boblampclean.md5anim");
 
 	SDL_Event event;
 	float red = 0.f, green = 0.f, blue = 0.f;

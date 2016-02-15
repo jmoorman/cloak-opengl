@@ -15,6 +15,9 @@ public:
 	void Update(unsigned int elapsedTimeMillis);
 	void Render();
 
+    //The number of VBOs that will be bound to the vertex array
+    static const int kVertexAttributeCount = 4;
+
 protected:
 	typedef std::vector<glm::vec3> PositionBuffer;
 	typedef std::vector<glm::vec3> NormalBuffer;
@@ -82,6 +85,10 @@ private:
     Animation mAnimation;
 
 	glm::mat4x4 mLocalToWorldMatrix;
+
+    GLuint mVertexArray;
+    GLuint mVertexBuffers[kVertexAttributeCount];
+    GLuint mTexSampler;
 
 	void readBone(boost::filesystem3::ifstream& file, int length);
 	void readMesh(boost::filesystem3::ifstream& file, int length);
