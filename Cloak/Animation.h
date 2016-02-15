@@ -53,6 +53,7 @@ public:
 	Animation(void);
 	~Animation(void);
 	bool LoadAnimation(const std::string& filename);
+    void SaveAnimation();
 	void Update(unsigned int elapsedTimeInMillis);
 	const FrameSkeleton& GetSkeleton() const;
 	int GetBoneCount() const;

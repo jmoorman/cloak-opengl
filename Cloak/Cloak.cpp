@@ -4,6 +4,7 @@
 #include "stdafx.h"
 
 #include "AnimatedMesh.h"
+#include "Animation.h"
 #include "Shader.h"
 #include "ShaderProgram.h"
 #include "TextureLoader.h"
@@ -16,9 +17,6 @@ void exitWithSDLError() {
 	SDL_Quit();
 	exit(EXIT_FAILURE);
 }
-
-float fPyramid[36];
-float fPyramidColor[36];
 
 GLuint uiVBO[2];
 GLuint uiVAO[1];
@@ -101,7 +99,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	TextureLoader textureLoader;
 	mesh = new AnimatedMesh(&textureLoader);
 	mesh->LoadModel("../data/meshes/boblampclean.md5mesh");
-	mesh->SaveModel("dummy");
+    mesh->LoadAnim("../data/animations/boblampclean.md5anim");
+
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		exitWithSDLError();
 	}
@@ -147,7 +146,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	SDL_Event event;
 	float red = 0.f, green = 0.f, blue = 0.f;
 	bool running = true;
+    Uint32 lastFrameTime = SDL_GetTicks();
 	while(running) {
+        Uint32 currentFrameTime = SDL_GetTicks();
 		//handle any events
 		while(SDL_PollEvent(&event)) {
 			switch(event.type) {
@@ -157,12 +158,14 @@ int _tmain(int argc, _TCHAR* argv[])
 			}
 		}
 		//update
-		rotationAngle += 0.01f;
+		rotationAngle += 0.001f;
+        mesh->Update(currentFrameTime - lastFrameTime);
 
 		//render
 		renderScene();
 
 		SDL_GL_SwapWindow(window);
+        lastFrameTime = currentFrameTime;
 	}
 	
 	SDL_GL_DeleteContext(glContext);

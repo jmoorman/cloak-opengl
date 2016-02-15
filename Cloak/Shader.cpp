@@ -26,11 +26,11 @@ bool Shader::compile() {
 	}
 
 	glShaderSource(mId, lines.size(), program, NULL);
-	glCompileShader(mId);
 	free(program);
 	program = NULL;
 
-	int compileStatus;
+    int compileStatus;
+	glCompileShader(mId);
 	glGetShaderiv(mId, GL_COMPILE_STATUS, &compileStatus);
 	if (compileStatus == GL_FALSE) {
 		return false;

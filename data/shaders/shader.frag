@@ -15,5 +15,5 @@ void main()
 	float ambient = 0.1;
 	float fDiffuseIntensity = max(0.0, dot(normalize(theNormal), -normalize(theLight))); 
 	//outputColor = vec4(color * (fDiffuseIntensity + ambient), 1.0);
-	outputColor = vTexColor;// * (fDiffuseIntensity + ambient);
+	outputColor = vTexColor * (fDiffuseIntensity + ambient);
 }

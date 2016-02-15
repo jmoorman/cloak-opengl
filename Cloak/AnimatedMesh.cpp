@@ -26,10 +26,9 @@ bool AnimatedMesh::LoadModel(const std::string& filename) {
 	}
 
 	//get file length
-	int pos = file.tellg();
 	file.seekg(0, std::ios::end);
 	int fileLength = file.tellg();
-	file.seekg(pos);
+    file.seekg(std::ios::beg);
 
 	std::string token;
 	std::string ignore;
@@ -73,10 +72,32 @@ void AnimatedMesh::SaveModel(const std::string& filename) {
 }
 
 bool AnimatedMesh::LoadAnim(const std::string& filename) {
-	return true;
+    return mAnimation.LoadAnimation(filename);
 }
 
 void AnimatedMesh::Update(unsigned int elapsedTimeMillis) {
+    mAnimation.Update(elapsedTimeMillis);
+    const Animation::FrameSkeleton& skeleton = mAnimation.GetSkeleton();
+    for(unsigned int meshIndex = 0; meshIndex < mMeshes.size(); meshIndex++) {
+        Mesh &mesh = mMeshes[meshIndex];
+        for(unsigned int vertIndex = 0; vertIndex < mesh.verts.size(); vertIndex++) {
+            const Vertex& vert = mesh.verts[vertIndex];
+            glm::vec3& pos = mesh.positionBuffer[vertIndex];
+            glm::vec3& normal = mesh.normalBuffer[vertIndex];
+
+            pos = glm::vec3(0);
+            normal = glm::vec3(0);
+
+            for(int weightIndex = 0; weightIndex < vert.weightCount; weightIndex++) {
+                const BoneWeight& weight = mesh.weights[vert.startWeight + weightIndex];
+                const Animation::SkeletonBone& bone = skeleton.bones[weight.boneId];
+
+                glm::vec3 rotPos = bone.orientation * weight.position;
+                pos += (bone.position + rotPos) * weight.bias;
+                normal += (bone.orientation * vert.normal) * weight.bias;
+            }
+        }
+    }
 }
 
 void AnimatedMesh::Render() {

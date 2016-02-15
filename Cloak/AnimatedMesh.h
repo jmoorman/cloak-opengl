@@ -1,6 +1,7 @@
 #pragma once
 
 #include "TextureLoader.h"
+#include "Animation.h"
 
 class AnimatedMesh
 {
@@ -77,6 +78,8 @@ private:
 
 	BoneList mBones;
 	MeshList mMeshes;
+
+    Animation mAnimation;
 
 	glm::mat4x4 mLocalToWorldMatrix;
 
