@@ -26,3 +26,6 @@
 #include <glm/gtx/compatibility.hpp>
 #include <SDL.h>
 #include <SDL_image.h>
+
+//1st party headers
+#include "CloakUtils.h"

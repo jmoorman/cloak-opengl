@@ -5,6 +5,8 @@
 
 #include "AnimatedMesh.h"
 #include "Animation.h"
+#include "Camera.h"
+#include "EventManager.h"
 #include "Shader.h"
 #include "ShaderProgram.h"
 #include "TextureLoader.h"
@@ -52,14 +54,13 @@ void initScene()
 	glClearColor(0.f, 0.f, 0.f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	projectionMatrix = glm::perspective(45.f, 1.f, 0.1f, 1000.f);
-	
+    projectionMatrix = glm::perspective(45.f, 1.f, 0.1f, 1000.f);
 }
 
 float rotationAngle = 0.0f;
 const float PIover180 = 3.1415f/180.0f;
 
-void renderScene()
+void renderScene(Camera &camera)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -71,12 +72,14 @@ void renderScene()
 
 	glUniformMatrix4fv(iProjectionLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
-	glm::mat4 modelViewMatrix = glm::lookAt(glm::vec3(0, 30, -100), glm::vec3(0.f, 30.f, 0.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	glm::mat4 current = glm::rotate(modelViewMatrix, rotationAngle, glm::vec3(0.f, 1.f, 0.f));
-	current = glm::rotate(current, -90 * PIover180, glm::vec3(1.f, 0.f, 0.f));
-	glm::mat4 normalMatrix = glm::transpose(glm::inverse(current));
+    const glm::mat4 &viewMatrix = camera.getViewMatrix();
+    //glm::mat4 modelViewMatrix;
+ 
+	//glm::mat4 current = glm::rotate(viewMatrix, rotationAngle, glm::vec3(0.f, 1.f, 0.f));
+	//current = glm::rotate(current, -90 * PIover180, glm::vec3(1.f, 0.f, 0.f));
+    glm::mat4 normalMatrix = glm::transpose(glm::inverse(viewMatrix));
 
-	glUniformMatrix4fv(iModelViewLoc, 1, GL_FALSE, glm::value_ptr(current));
+	glUniformMatrix4fv(iModelViewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 	glUniformMatrix4fv(iNormalLoc, 1, GL_FALSE, glm::value_ptr(normalMatrix));
 	glUniform3fv(iLightPosLoc, 1, glm::value_ptr(glm::vec3(-50, 0, -50)));
 	glUniform1i(iSamplerLoc, 0);
@@ -84,6 +87,11 @@ void renderScene()
 	mesh->Render();
 	
 }
+
+bool g_running = true;
+float g_deltaYaw = 0.f;
+float g_deltaPitch = 0.f;
+glm::vec3 g_position(10.f, 0.f, 0.f);
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -126,7 +134,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		exit(EXIT_FAILURE);
 	}
 
-  	initScene();
+    Camera camera(glm::vec3(0));
+    initScene();
 
 	//initialize sample data
     TextureLoader textureLoader;
@@ -134,26 +143,28 @@ int _tmain(int argc, _TCHAR* argv[])
 	mesh->LoadModel("../data/meshes/boblampclean.md5mesh");
     mesh->LoadAnim("../data/animations/boblampclean.md5anim");
 
-	SDL_Event event;
+    EventManager eventManager;
+
 	float red = 0.f, green = 0.f, blue = 0.f;
-	bool running = true;
+    
     Uint32 lastFrameTime = SDL_GetTicks();
-	while(running) {
+	while(g_running) {
         Uint32 currentFrameTime = SDL_GetTicks();
+
+        g_deltaYaw = 0.f;
+        g_deltaPitch = 0.f;
 		//handle any events
-		while(SDL_PollEvent(&event)) {
-			switch(event.type) {
-			case SDL_KEYDOWN:
-				running = false;
-				break;
-			}
-		}
+        eventManager.handleEvents();
+
+        camera.rotate(g_deltaPitch, g_deltaYaw);
+        camera.setPosition(g_position);
+
 		//update
 		rotationAngle += 0.001f;
         mesh->Update(currentFrameTime - lastFrameTime);
 
 		//render
-		renderScene();
+		renderScene(camera);
 
 		SDL_GL_SwapWindow(window);
         lastFrameTime = currentFrameTime;
